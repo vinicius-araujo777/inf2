@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>⭐ CASSINO - BLACKJACK ⭐</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #ffd700;
+      --neon: #00ffcc;
+      --purple-dark: #1a0033;
+      --purple-darker: #0a001a;
+      --red-neon: #ff0066;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: linear-gradient(180deg, var(--purple-darker), #220044);
+      color: var(--gold);
+      font-family: 'Press Start 2P', cursive;
+      min-height: 100vh;
+      padding: 15px;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 0;
+      background: rgba(0,0,0,0.6);
+      border-bottom: 6px solid var(--gold);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      text-shadow: 0 0 15px var(--neon), 0 0 30px #ff00aa;
+      letter-spacing: 3px;
+    }
+
+    .balance {
+      font-size: 1.6rem;
+      margin: 15px 0;
+      background: rgba(255,215,0,0.12);
+      padding: 12px 30px;
+      border: 4px solid var(--gold);
+      border-radius: 12px;
+      display: inline-block;
+      box-shadow: 0 0 30px rgba(255,215,0,0.5);
+    }
+
+    .game-area {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(0,0,0,0.75);
+      border: 7px solid var(--gold);
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 0 60px rgba(0,255,204,0.4);
+    }
+
+    .table {
+      background: #0d1a26;
+      border: 10px solid #1e3a5f;
+      border-radius: 15px;
+      padding: 20px;
+      min-height: 380px;
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    .hand {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+      min-height: 140px;
+    }
+
+    .card {
+      width: 90px;
+      height: 130px;
+      background: white;
+      border-radius: 10px;
+      border: 3px solid #222;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px;
+      font-size: 1.8rem;
+      color: black;
+      position: relative;
+      transition: transform 0.4s;
+    }
+
+    .card.red { color: #c00; }
+    .card.back {
+      background: linear-gradient(135deg, #333, #111);
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+    .card.back::after {
+      content: "♠︎♥︎♦︎♣︎";
+      position: absolute;
+      inset: 0;
+      font-size: 3rem;
+      opacity: 0.15;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .card:hover { transform: translateY(-10px) scale(1.08); }
+
+    .player-area .hand { margin-top: 30px; }
+    .dealer-area .hand { margin-bottom: 30px; }
+
+    .score {
+      font-size: 1.5rem;
+      margin: 10px 0;
+      text-shadow: 0 0 10px var(--neon);
+    }
+
+    .message {
+      font-size: 1.7rem;
+      min-height: 60px;
+      margin: 20px 0;
+      text-shadow: 0 0 15px #ff00aa;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 25px 0;
+    }
+
+    button {
+      font-family: 'Press Start 2P', cursive;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    #deal, #new-game {
+      background: linear-gradient(#ff3366, #cc0044);
+      color: white;
+      box-shadow: 0 0 20px #ff0066;
+    }
+
+    #hit, #stand {
+      background: #0066ff;
+      color: white;
+      box-shadow: 0 0 20px #00aaff;
+    }
+
+    #double {
+      background: #ffaa00;
+      color: #000;
+      box-shadow: 0 0 20px #ffdd00;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-3px) scale(1.08);
+    }
+
+    .bet-controls {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .bet-btn {
+      background: var(--purple-dark);
+      color: var(--gold);
+      border: 3px solid var(--gold);
+      padding: 12px 24px;
+    }
+
+    .bet-btn.active {
+      background: var(--gold);
+      color: black;
+      box-shadow: 0 0 25px var(--gold);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: var(--purple-dark);
+      padding: 30px;
+      border: 6px solid var(--gold);
+      border-radius: 16px;
+      max-width: 520px;
+      text-align: center;
+    }
+
+    .close {
+      float: right;
+      font-size: 2.5rem;
+      cursor: pointer;
+      color: var(--red-neon);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      opacity: 0.7;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⭐ CASSINO BLACKJACK ⭐</h1>
+  <div class="balance">SALDO: <span id="balance">1000</span> 💰</div>
+</header>
+
+<div class="game-area">
+
+  <div class="table">
+
+    <div class="dealer-area">
+      <div class="score">Dealer: <span id="dealer-score">?</span></div>
+      <div class="hand" id="dealer-hand"></div>
+    </div>
+
+    <div class="player-area">
+      <div class="score">Você: <span id="player-score">0</span></div>
+      <div class="hand" id="player-hand"></div>
+    </div>
+
+    <div class="message" id="message">Faça sua aposta e clique em NOVO JOGO</div>
+
+  </div>
+
+  <div class="bet-controls">
+    <button class="bet-btn active" data-bet="10">10</button>
+    <button class="bet-btn" data-bet="25">25</button>
+    <button class="bet-btn" data-bet="50">50</button>
+    <button class="bet-btn" data-bet="100">100</button>
+    <button class="bet-btn" data-bet="200">200</button>
+  </div>
+
+  <div class="controls">
+    <button id="new-game">NOVO JOGO</button>
+    <button id="deal" disabled>COMEÇAR</button>
+    <button id="hit" disabled>PEDIR</button>
+    <button id="stand" disabled>PARAR</button>
+    <button id="double" disabled>DOBRAR</button>
+  </div>
+
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close">×</span>
+    <h2>Regras do Blackjack</h2>
+    <ul style="text-align:left; margin:20px 0; line-height:1.7;">
+      <li>Objetivo: chegar o mais próximo de 21 sem estourar</li>
+      <li>Ás = 1 ou 11 (o que for melhor)</li>
+      <li>Figuras (J,Q,K) = 10</li>
+      <li>Blackjack (Ás + carta 10) = vitória automática 3:2</li>
+      <li>Double só na primeira ação e com 2 cartas</li>
+      <li>Empate = aposta devolvida</li>
+    </ul>
+    <p style="margin-top:25px;">Boa sorte, Vinicius! 🍀</p>
+  </div>
+</div>
+
+<footer>
+  Grok poucas ideias
+</footer>
+
+<script>
+// ================================================
+// BLACKJACK - Lucky Casino
+// ================================================
+
+let balance = 1000;
+let currentBet = 10;
+let gameActive = false;
+let dealerCards = [];
+let playerCards = [];
+
+const suits = ['♥','♦','♣','♠'];
+const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+const balanceEl      = document.getElementById('balance');
+const messageEl      = document.getElementById('message');
+const dealerScoreEl  = document.getElementById('dealer-score');
+const playerScoreEl  = document.getElementById('player-score');
+const dealerHandEl   = document.getElementById('dealer-hand');
+const playerHandEl   = document.getElementById('player-hand');
+
+const btnNewGame = document.getElementById('new-game');
+const btnDeal    = document.getElementById('deal');
+const btnHit     = document.getElementById('hit');
+const btnStand   = document.getElementById('stand');
+const btnDouble  = document.getElementById('double');
+
+const modal = document.getElementById('modal');
+
+// Carregar / salvar saldo
+function loadGame() {
+  const saved = localStorage.getItem('luckyBlackjack');
+  if (saved) balance = parseInt(saved) || 1000;
+  balanceEl.textContent = balance;
+}
+function saveGame() {
+  localStorage.setItem('luckyBlackjack', balance);
+}
+loadGame();
+
+// Baralho
+function createDeck() {
+  let deck = [];
+  for (let suit of suits) {
+    for (let rank of ranks) {
+      deck.push({rank, suit});
+    }
+  }
+  return deck.sort(() => Math.random() - 0.5);
+}
+
+let deck = createDeck();
+
+function dealCard(handArray, element, hidden = false) {
+  if (deck.length < 10) deck = createDeck();
+
+  const card = deck.pop();
+  handArray.push(card);
+
+  const cardEl = document.createElement('div');
+  cardEl.classList.add('card');
+  if (hidden) {
+    cardEl.classList.add('back');
+  } else {
+    if (card.suit === '♥' || card.suit === '♦') cardEl.classList.add('red');
+    cardEl.innerHTML = `
+      <div>${card.rank}</div>
+      <div style="font-size:2.8rem; text-align:center;">${card.suit}</div>
+      <div style="text-align:right;">${card.rank}</div>
+    `;
+  }
+  element.appendChild(cardEl);
+}
+
+function calculateScore(cards) {
+  let score = 0;
+  let aces = 0;
+
+  for (let card of cards) {
+    if (card.rank === 'A') {
+      aces++;
+      score += 11;
+    } else if (['J','Q','K'].includes(card.rank)) {
+      score += 10;
+    } else {
+      score += parseInt(card.rank);
+    }
+  }
+
+  while (score > 21 && aces > 0) {
+    score -= 10;
+    aces--;
+  }
+
+  return score;
+}
+
+function updateScores(showDealerAll = false) {
+  const playerScore = calculateScore(playerCards);
+  playerScoreEl.textContent = playerScore;
+
+  if (showDealerAll) {
+    const dealerScore = calculateScore(dealerCards);
+    dealerScoreEl.textContent = dealerScore;
+  } else {
+    // Mostra apenas a carta visível do dealer
+    if (dealerCards.length > 0) {
+      const visible = calculateScore([dealerCards[1]]);
+      dealerScoreEl.textContent = visible + (dealerCards[0].rank === 'A' ? '/?' : '');
+    }
+  }
+}
+
+function disableGameButtons() {
+  btnHit.disabled = true;
+  btnStand.disabled = true;
+  btnDouble.disabled = true;
+}
+
+function enablePlayerActions() {
+  btnHit.disabled = false;
+  btnStand.disabled = false;
+  
+  // Double só na primeira jogada e com exatamente 2 cartas
+  if (playerCards.length === 2) {
+    btnDouble.disabled = false;
+  }
+}
+
+function checkBlackjack() {
+  if (playerCards.length === 2 && calculateScore(playerCards) === 21) {
+    messageEl.textContent = "BLACKJACK! Você ganhou!";
+    messageEl.style.color = "#00ff99";
+    let win = Math.round(currentBet * 2.5);
+    balance += win;
+    saveGame();
+    balanceEl.textContent = balance;
+    disableGameButtons();
+    btnNewGame.disabled = false;
+    return true;
+  }
+  return false;
+}
+
+function dealerPlay() {
+  updateScores(true); // mostra todas as cartas do dealer
+
+  let dealerScore = calculateScore(dealerCards);
+  while (dealerScore < 17) {
+    dealCard(dealerCards, dealerHandEl);
+    dealerScore = calculateScore(dealerCards);
+    updateScores(true);
+  }
+
+  const playerScore = calculateScore(playerCards);
+
+  setTimeout(() => {
+    if (dealerScore > 21) {
+      messageEl.textContent = "Dealer estourou! Você venceu!";
+      messageEl.style.color = "#00ff99";
+      balance += currentBet * 2;
+    } else if (dealerScore > playerScore) {
+      messageEl.textContent = "Dealer venceu...";
+      messageEl.style.color = "#ff3366";
+    } else if (dealerScore < playerScore) {
+      messageEl.textContent = "Você venceu!";
+      messageEl.style.color = "#00ff99";
+      balance += currentBet * 2;
+    } else {
+      messageEl.textContent = "Empate!";
+      messageEl.style.color = "#ffdd00";
+      balance += currentBet;
+    }
+
+    balanceEl.textContent = balance;
+    saveGame();
+    disableGameButtons();
+    btnNewGame.disabled = false;
+  }, 800);
+}
+
+function startNewGame() {
+  if (balance < currentBet) {
+    messageEl.textContent = "Saldo insuficiente!";
+    messageEl.style.color = "#ff3366";
+    return;
+  }
+
+  // Reset
+  deck = createDeck();
+  dealerCards = [];
+  playerCards = [];
+  dealerHandEl.innerHTML = '';
+  playerHandEl.innerHTML = '';
+  messageEl.textContent = "Boa sorte!";
+  messageEl.style.color = "var(--gold)";
+
+  balance -= currentBet;
+  balanceEl.textContent = balance;
+  saveGame();
+
+  // Primeiras cartas
+  dealCard(dealerCards, dealerHandEl, true);   // carta oculta
+  dealCard(playerCards, playerHandEl);
+  dealCard(dealerCards, dealerHandEl);         // carta visível
+  dealCard(playerCards, playerHandEl);
+
+  updateScores();
+
+  btnNewGame.disabled = true;
+  btnDeal.disabled = true;
+  enablePlayerActions();
+
+  if (checkBlackjack()) return;
+}
+
+function hit() {
+  dealCard(playerCards, playerHandEl);
+  const score = calculateScore(playerCards);
+  updateScores();
+
+  if (score > 21) {
+    messageEl.textContent = "Estourou! Você perdeu.";
+    messageEl.style.color = "#ff3366";
+    disableGameButtons();
+    btnNewGame.disabled = false;
+  }
+}
+
+function stand() {
+  disableGameButtons();
+  dealerPlay();
+}
+
+function doubleDown() {
+  if (balance < currentBet) {
+    messageEl.textContent = "Saldo insuficiente para dobrar!";
+    return;
+  }
+
+  balance -= currentBet;
+  currentBet *= 2;
+  balanceEl.textContent = balance;
+  saveGame();
+
+  dealCard(playerCards, playerHandEl);
+  updateScores();
+
+  const score = calculateScore(playerCards);
+  if (score > 21) {
+    messageEl.textContent = "Estourou no DOUBLE! Perdeu.";
+    messageEl.style.color = "#ff3366";
+    disableGameButtons();
+    btnNewGame.disabled = false;
+  } else {
+    disableGameButtons();
+    dealerPlay();
+  }
+}
+
+// Eventos
+btnNewGame.onclick = () => {
+  btnDeal.disabled = false;
+  messageEl.textContent = `Aposta atual: ${currentBet}`;
+};
+
+btnDeal.onclick = startNewGame;
+
+btnHit.onclick   = hit;
+btnStand.onclick = stand;
+btnDouble.onclick = doubleDown;
+
+document.querySelectorAll('.bet-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentBet = Number(btn.dataset.bet);
+    if (!gameActive) {
+      messageEl.textContent = `Aposta atual: ${currentBet}`;
+    }
+  };
+});
+
+// Modal de regras
+document.querySelector('.close').onclick = () => modal.style.display = 'none';
+modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+setTimeout(() => modal.style.display = 'flex', 1200);
+
+</script>
+</body>
+</html>
